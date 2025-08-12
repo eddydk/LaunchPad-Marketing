@@ -1,0 +1,13 @@
+## 📋 Assumptions & Lessons Learned
+
+| # | Assumption | Reality | Resolution |
+|---|------------|---------|------------|
+| 1 | **Coordinator can call `.query()` on remote AgentEngine handles.** | SDK version only supports `.create_session()` and `.stream_query()`; `.query()` caused `AttributeError`. | Switched to `.stream_query()` and concatenated events into a single string output. |
+| 2 | **Safe to set `GOOGLE_CLOUD_PROJECT` and `GOOGLE_CLOUD_LOCATION` in `env_vars` when deploying.** | These names are **reserved** in Agent Engine; setting them caused `FailedPrecondition` errors. | Used custom names (`APP_PROJECT_ID`, `APP_LOCATION`) and updated code to read these first, with fallback to system-provided vars. |
+| 3 | **Coordinator can directly call local Python functions (`generate_blog_post`, `generate_social_posts`).** | Deployed Coordinator runs in its own container, no access to local functions/modules. | Created `_call_remote_engine()` to perform HTTP session-scoped `:query` calls to deployed Blog/Social agents. |
+| 4 | **`:streamQuery` will always produce SSE event lines.** | Some agents respond with one-shot JSON (`Content-Type: application/json`) and no streaming data. | Added fallback in `_call_remote_engine()` to call session-scoped `:query` if streaming returns nothing. |
+| 5 | **Event payloads will always contain `content.parts[].text`.** | Outputs sometimes appear in `inline_data` (base64-encoded) or under `output.content` instead of `content`. | Implemented `_extract_from_content_obj()` to handle `text` and decode `inline_data`. |
+| 6 | **Remote `session_id` can be any generated UUID.** | Engines validate sessions; unknown IDs cause `Session not found` errors. | Always create sessions using the engine’s `create_session` API, and reuse valid IDs. |
+| 7 | **Local ADK behavior matches remote Agent Engine behavior.** | Remote runtime has stricter isolation and different session/tool semantics. | Refactored code for remote-safe tool calls, avoided local-only dependencies. |
+| 8 | **Local session handling logic would work the same for Gradio UI and remote calls.** | Remote sessions require explicit `create_session` calls and consistent `session_id` passing per agent. | Separated local session management for Gradio from remote session management logic for deployed agents. |
+| 9 | **Agents could only be created using the `Agent()` method.** | The SDK also offers `LLMAgent` and `ParallelAgent`, which can simplify integration and orchestration. | Learned about these alternatives later — would consider using them to make the coordinator/sub-agent setup cleaner and less manual. |
