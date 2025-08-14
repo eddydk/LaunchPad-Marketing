@@ -32,7 +32,7 @@ Unified Campaign Package (Markdown)
 ![alt text](https://github.com/eddydk/LaunchPad-Marketing/blob/main/images/Architecture.png?raw=true)
 
 ### **Campaign Agent Orchestration**
-![alt text](https://github.com/eddydk/LaunchPad-Marketing/blob/main/images/Campaign Agent Orchestration.png?raw=true)
+![alt text](https://github.com/eddydk/LaunchPad-Marketing/blob/main/images/Campaign_Agent_Orchestration.png?raw=true)
 
 ### **Design Decisions**
 - **Remote Orchestration**  
