@@ -7,7 +7,7 @@ The solution is a **multi-agent Generative AI system** built with **Google Cloud
 
 1. **Blog Post Agent** – Produces structured, ~500-word product announcement blog posts in Markdown.
 2. **Social Media Agent** – Generates short-form, platform-specific social posts in JSON.
-3. **Campaign Coordinator Agent** – Orchestrates the Blog and Social agents to deliver a **unified campaign package** (JSON or Markdown).
+3. **Campaign Coordinator Agent** – Orchestrates the Blog and Social agents to deliver a **unified campaign package** (Markdown).
 
 This system enables **faster go-to-market cycles**, **consistent messaging**, and **scalable campaign production**.
 
@@ -23,36 +23,43 @@ This system enables **faster go-to-market cycles**, **consistent messaging**, an
 Campaign Coordinator Agent
    ├── Remote Call → Blog Post Agent
    ├── Remote Call → Social Media Agent
+   ├── Remote Call → Consolidator Agent
    ▼
-Unified Campaign Package (Markdown / JSON)
+Unified Campaign Package (Markdown)
 ```
+
+### **Technical Architecture Diagram**
+![alt text](https://github.com/eddydk/LaunchPad-Marketing/blob/main/images/Architecture.png?raw=true)
+
+### **Campaign Agent Orchestration**
+![alt text](https://github.com/eddydk/LaunchPad-Marketing/blob/main/images/Campaign Agent Orchestration.png?raw=true)
 
 ### **Design Decisions**
 - **Remote Orchestration**  
-  The Coordinator is deployed independently on Agent Engine and calls **remote Blog & Social agents** via session-scoped HTTP `:query` calls.  
+  The Coordinator is deployed independently on Agent Engine and calls **Blog Post & Social Media agents** via session-scoped HTTP `:stream_query()` calls.  
   This avoids bundling large models or business logic directly into one monolithic agent.
-
-- **Custom Environment Variables**  
-  To pass resource names between agents without using reserved environment variables, we used `APP_LOCATION`, `BLOG_ENGINE_RESOURCE`, and `SOCIAL_ENGINE_RESOURCE`.
 
 - **Flexible Output Handling**  
   The parsing functions `_extract_from_content_obj` and `_normalize_engine_query_payload` ensure the system handles text, Markdown, JSON, and base64-encoded content.
 
-- **Fallback for Streaming**  
-  Since some agents return non-streamed JSON, `_call_remote_engine` supports both streaming and one-shot queries.
-
 - **Session Management**  
-  All remote calls explicitly create sessions via `create_session` to prevent "Session not found" errors.
+  All remote calls explicitly create sessions via `create_session` to prevent "Session not found" errors and maintain conversation.
 
 ---
 
 ## ⚙️ Setup & Deployment
+
+### Option 1: Import the .ipynb in a Jupyter notebook and run each cell in order (make sure to rename the environment variables to your own setup)
+
+### Option 2: Follow the next steps:
 
 ### **Prerequisites**
 - Python 3.10+
 - Google Cloud Project with Vertex AI enabled
 - `google-cloud-aiplatform` with Agent Engine & ADK extras
 - Service account with Vertex AI Admin and Storage permissions
+- `google-genai`
+- `gradio`
 
 ### **Install Dependencies**
 ```bash
@@ -64,6 +71,7 @@ pip install google-cloud-aiplatform[agent_engines,adk] google-auth requests
 export GOOGLE_CLOUD_PROJECT="your-project-id"
 export GOOGLE_CLOUD_LOCATION="us-central1"
 export GOOGLE_CLOUD_BUCKET="your-staging-bucket"
+export GEMINI_VERSION="gemini-2.0-flash" 
 ```
 
 ### **Deploy Agents**
@@ -82,7 +90,8 @@ env_vars={
 ### **Run Locally with Gradio**
 The notebook contains a Gradio UI:
 - Select Agent
-- Enter Product Brief
+- Select Prompt
+- Enter and Finalze Product Brief
 - Get either Markdown (Blog) or JSON (Social) output
 
 ---
@@ -91,8 +100,9 @@ The notebook contains a Gradio UI:
 1. **Human-in-the-loop Review** – Allow content approval and editing before publishing.
 2. **Multi-language Support** – Generate content in different languages for global launches.
 3. **Analytics Feedback Loop** – Feed engagement metrics back into prompt engineering.
-4. **More Platforms** – Add TikTok scripts, YouTube Shorts descriptions, Pinterest boards.
+4. **Prompt Engineering and Enhance Output Quality** - Implement brand tone/style fine-tuning.
 5. **CMS Integration** – Auto-publish to WordPress, HubSpot, or social scheduling tools.
+6. **Security & Compliance** - Add brand-safety filters.
 
 ---
 
@@ -100,6 +110,7 @@ The notebook contains a Gradio UI:
 ```
 ├── launchpad_marketing.ipynb      # Main development & deployment notebook
 ├── README.md                      # This document
+├── strataprime_logo.jpg           # Logo used in GUI
 ```
 
 ---
